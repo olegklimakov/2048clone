@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class FieldGenerator : MonoBehaviour
@@ -31,7 +32,15 @@ public class FieldGenerator : MonoBehaviour
                 
                 // Instantiate the tile at the calculated position
                 GameObject tile = Instantiate(tilePrefab, new Vector3(posX, posY, 0), Quaternion.identity, parentTransform);
-
+                tile.name = "Tile " + row + "," + col;
+                
+                // Find the TextMeshPro component and set the text
+                TextMeshPro textMesh = tile.GetComponentInChildren<TextMeshPro>();
+                if (textMesh != null)
+                {
+                    textMesh.text = "Tile " + row + "," + col;
+                }
+                
                 // Optional: Adjust tile size if your prefab needs resizing
                 SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
                 if (sr != null)
