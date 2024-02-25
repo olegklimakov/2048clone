@@ -1,17 +1,21 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
 class GridPosition
 {
-    public GridPosition(float x, float y)
+    public GridPosition(float x, float y, int row, int col)
     {
         X = x;
         Y = y;
+        Row = row;
+        Col = col;
         IsEmpty = true;
     }
 
@@ -19,6 +23,9 @@ class GridPosition
     public float X { get; set; }
 
     public float Y { get; set; }
+
+    public int Row { get; set; }
+    public int Col { get; set; }
 
     public Boolean IsEmpty { get; set; }
 
@@ -28,28 +35,78 @@ class GridPosition
     }
 }
 
+class NumberElement
+{
+    public NumberElement(GameObject gameObject, int row, int col)
+    {
+        GameObject = gameObject;
+        Row = row;
+        Col = col;
+    }
+
+    public GameObject GameObject { get; set; }
+    
+    public int Row { get; set; }
+    public int Col { get; set; }
+}
+
 public class FieldGenerator : MonoBehaviour
 {
     public GameObject tilePrefab; // Assign your tile prefab in the inspector
 
     public GameObject itemPrefab;
     
+    private Camera cam;
     public int rows = 4; // Number of rows in the game field
     public int columns = 4; // Number of columns in the game field
     public float tileWidth = 1.0f; // The width of each tile
     public float tileHeight = 1.0f; // The height of each tile
     public float spacing = 0.1f; // Spacing between tiles
+   
 
     private List<GridPosition> _field = new List<GridPosition>();
-    
+
+    private List<NumberElement> _numbers = new List<NumberElement>();
+
     private GameObject _tilesContaier;
+    
 
     void Start()
     {
+        cam = Camera.main;
         GenerateGameField();
         PlaceInitialItems();
     }
-    
+
+    private void Update()
+    {
+        if (SwipeInput.swipedRight)
+        {
+            Debug.Log("Swipe right");
+            MoveItems();
+        }
+       
+    }
+
+
+    private void MoveItems()
+    {
+        for (int i = 0; i < _numbers.Count; i++)
+        {
+            NumberElement number = _numbers[i];
+            GridPosition target = _field.Find(x => x.Row == number.Row && x.Col == columns - 1);
+            
+            float step = 0.1f;
+            
+            Vector3 point = new Vector3(target.X, target.Y, 0);
+                
+            number.GameObject.SendMessage("SetTarget", point);
+            // number.GameObject.transform.Translate(destination * Time.deltaTime);
+            // number.GameObject.transform.position = Vector3.MoveTowards(number.GameObject.transform.position, point, speed * Time.deltaTime);
+            // Debug.Log(target.Col);
+        }
+    }
+
     void PlaceInitialItems()
     {
         // Simple example logic for placing two items
@@ -60,11 +117,11 @@ public class FieldGenerator : MonoBehaviour
     void PlaceRandomItem()
     {
         
-        Debug.Log(_field);
-        for (int i = 0; i < _field.Count; i++)
-        {
-            Debug.Log(_field[i].ToString());
-        }
+        // Debug.Log(_field);
+        // for (int i = 0; i < _field.Count; i++)
+        // {
+        //     Debug.Log(_field[i].ToString());
+        // }
         
         
         
@@ -72,14 +129,25 @@ public class FieldGenerator : MonoBehaviour
         List<GridPosition> emptyPositions = _field.Where(item => item.IsEmpty).ToList();
         // Assuming you have a way to track which positions on the grid are empty,
         // populate emptyPositions with those locations
-
+        
         if (emptyPositions.Count > 0)
         {
+            
             int randomIndex = Random.Range(0, emptyPositions.Count);
-            Vector3 position = new Vector3(emptyPositions[randomIndex].X, emptyPositions[randomIndex].Y, 0);
+            GridPosition randomPosition = emptyPositions[randomIndex];
+            
+            Vector3 position = new Vector3(randomPosition.X, randomPosition.Y, 0);
             
             // Convert grid position to world space or adjust as necessary
-            Instantiate(itemPrefab, position, Quaternion.identity, parentTransform);
+            GameObject item = Instantiate(itemPrefab, position, Quaternion.identity, parentTransform);
+            
+            emptyPositions[randomIndex].IsEmpty = false;
+
+            NumberElement number =
+                new NumberElement(item, randomPosition.Row, randomPosition.Col); 
+            
+            _numbers.Add(number);
+            
             // Optionally, set the item's value here (e.g., to "2" or "4")
         }
     }
@@ -134,11 +202,15 @@ public class FieldGenerator : MonoBehaviour
         
         for (int i = 0; i < _tilesContaier.transform.childCount; i++)
         {
+            double row = Math.Floor(Convert.ToDouble(i) / Convert.ToDouble(rows));
+            int col = i % columns;
+            
+            Debug.Log("Row: " + row + ' ' + col);   
+            
             Transform child = _tilesContaier.transform.GetChild(i);
             // Now you have access to the child transform
             // You can do something with it, for example, print its name
-            Debug.Log(child.name);
-            GridPosition position = new GridPosition(child.position.x, child.position.y);
+            GridPosition position = new GridPosition(child.position.x, child.position.y, Convert.ToInt32(row), col);
             _field.Add(position);
         }
     }
