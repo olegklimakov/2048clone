@@ -50,6 +50,14 @@ class NumberElement
     public int Col { get; set; }
 }
 
+enum MoveDirection
+{
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
 public class FieldGenerator : MonoBehaviour
 {
     public GameObject tilePrefab; // Assign your tile prefab in the inspector
@@ -82,24 +90,65 @@ public class FieldGenerator : MonoBehaviour
     {
         if (SwipeInput.swipedRight)
         {
-            Debug.Log("Swipe right");
-            MoveItems();
+            MoveItems(MoveDirection.Right);
+            PlaceRandomItem();
         }
-       
+
+        if (SwipeInput.swipedLeft)
+        {
+            MoveItems(MoveDirection.Left);
+            PlaceRandomItem();
+        }
+        
+        if (SwipeInput.swipedDown)
+        {
+            MoveItems(MoveDirection.Down);
+            PlaceRandomItem();
+        }
+        
+        if (SwipeInput.swipedUp)
+        {
+            MoveItems(MoveDirection.Up);
+            PlaceRandomItem();
+        }
     }
 
 
-    private void MoveItems()
+    private void MoveItems(MoveDirection direction)
     {
         for (int i = 0; i < _numbers.Count; i++)
         {
             NumberElement number = _numbers[i];
-            GridPosition target = _field.Find(x => x.Row == number.Row && x.Col == columns - 1);
+            GridPosition target = null;
+
+            GridPosition from = _field.Find(x => x.Row == number.Row && x.Col == number.Col);
+            switch (direction)
+            {
+                case MoveDirection.Right:
+                    target = _field.Find(x => x.Row == number.Row && x.Col == columns - 1);
+                    break;
+                case MoveDirection.Left:
+                    target = _field.Find(x => x.Row == number.Row && x.Col == 0);
+                    break;
+                case MoveDirection.Down:
+                    target = _field.Find(x => x.Row == rows - 1 && x.Col == number.Col);
+                    break;
+                case MoveDirection.Up:
+                    target = _field.Find(x => x.Row == 0 && x.Col == number.Col);
+                    break;
+            }
             
             float step = 0.1f;
-            
+
             Vector3 point = new Vector3(target.X, target.Y, 0);
-                
+
+            target.IsEmpty = false;
+
+            number.Col = target.Col;
+            number.Row = target.Row;
+            
+            from.IsEmpty = true;
+            
             number.GameObject.SendMessage("SetTarget", point);
             // number.GameObject.transform.Translate(destination * Time.deltaTime);
             // number.GameObject.transform.position = Vector3.MoveTowards(number.GameObject.transform.position, point, speed * Time.deltaTime);
@@ -127,6 +176,9 @@ public class FieldGenerator : MonoBehaviour
         
         Transform parentTransform = _tilesContaier.transform;
         List<GridPosition> emptyPositions = _field.Where(item => item.IsEmpty).ToList();
+
+        Debug.Log( emptyPositions.Count);
+
         // Assuming you have a way to track which positions on the grid are empty,
         // populate emptyPositions with those locations
         
