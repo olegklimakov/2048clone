@@ -17,8 +17,7 @@ public class TileGrid : MonoBehaviour
     private float _tileHeight;
 
     private Rect _parentRect;
-
-    private TileCell[] Cells { get; set; }
+    public TileCell[,] Cells;
     void GenerateGameField()
     {
         // Calculate the total size of the grid to adjust positions for centering
@@ -48,13 +47,16 @@ public class TileGrid : MonoBehaviour
                 {
                     textMesh.text = row + " - " + col;
                 }
+
+                Cells[row, col] = newTile;
             }
         }
     }
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
+        Cells = new TileCell[rows, columns];
         RectTransform objectRectTransform = gameObject.GetComponent<RectTransform>();
         _parentRect = objectRectTransform.rect;
 
