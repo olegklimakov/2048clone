@@ -19,7 +19,9 @@ public class Board : MonoBehaviour
     private TileGrid _grid;
     private GameObject _itemContainer;
 
-    private List<GameItem> _items = new List<GameItem>(); 
+    private List<GameItem> _items = new List<GameItem>();
+
+    public TileState[] tileStates;
 
     // Start is called before the first frame update
     void Start()
@@ -29,6 +31,7 @@ public class Board : MonoBehaviour
         Debug.Log(_grid.columns);
         Debug.Log(_grid.Cells[0, 1]);
         
+        AddNewElement();
         AddNewElement();
     }
 
@@ -49,13 +52,13 @@ public class Board : MonoBehaviour
         
         if (SwipeInput.swipedDown)
         {
-            MoveItems(Vector2Int.up, 0, 1, _grid.rows - 2, -1);
+            MoveItems(Vector2Int.down, 0, 1, 1, 1);
             // AddNewElement();
         }
         
         if (SwipeInput.swipedUp)
         {
-            MoveItems(Vector2Int.up, 0, 1, 1, 1);
+            MoveItems(Vector2Int.up, 0, 1, _grid.rows - 2, -1);
             // AddNewElement();
         }
     }
@@ -66,7 +69,7 @@ public class Board : MonoBehaviour
         {
             for(int row = startY; row >= 0 && row < _grid.rows; row += incrementY)
             {
-                TileCell cell = _grid.GetCell(row, column);
+                TileCell cell = _grid.GetCell(column, row);
 
                 if (cell.IsOccupied())
                 {
@@ -114,5 +117,7 @@ public class Board : MonoBehaviour
 
         cell.item = item;
         item.cell = cell;
+        
+        item.SetState(tileStates[0], 2);
     }
 }

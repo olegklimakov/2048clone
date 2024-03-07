@@ -43,17 +43,19 @@ public class TileGrid : MonoBehaviour
                 rt.anchoredPosition = position;
                 rt.sizeDelta = new Vector2(tileWidth, tileHeight);
 
-                newTile.name = "Tile " + row + "," + col;
-                newTile.x = row;
-                newTile.y = col;
+                
+                newTile.x = col;
+                newTile.y = rows - row - 1;
+                
+                newTile.name = "Tile " + newTile.x + "," + newTile.y;
                 
                 TextMeshProUGUI textMesh = newTile.GetComponentInChildren<TextMeshProUGUI>();
                 if (textMesh != null)
                 {
-                    textMesh.text = row + " - " + col;
+                    textMesh.text = newTile.x + " - " + newTile.y;
                 }
 
-                Cells[row, col] = newTile;
+                Cells[newTile.x, newTile.y] = newTile;
             }
         }
     }
@@ -83,11 +85,16 @@ public class TileGrid : MonoBehaviour
 
     public TileCell GetNeighbourCell(TileCell cell, Vector2Int direction)
     {
+        
+        Debug.Log("Neighbour current -> " + cell.x + ":" + cell.y);
+        
         var x = cell.x;
         var y = cell.y;
 
         var newX = x += direction.x;
         var newY = y += direction.y;
+        
+        Debug.Log("Neighbour new -> " +newX + ":" +newY);
 
         return GetCell(newX, newY);
     }
