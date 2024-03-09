@@ -37,13 +37,30 @@ public class GameItem : MonoBehaviour
 
     public void MoveTo(TileCell cell)
     {
+        if (this.cell != null)
+        {
+            this.cell.item = null;
+        }
+
         this.cell = cell;
         cell.item = this;
 
-        StartCoroutine(Animate(cell.transform.position));
+        StartCoroutine(Animate(cell.transform.position, false));
     }
 
-    private IEnumerator Animate(Vector3 to)
+    public void Merge(TileCell cell)
+    {
+        if (this.cell != null)
+        {
+            this.cell.item = null;
+        }
+
+        this.cell = null;
+        StartCoroutine(Animate(cell.transform.position, true));
+    }
+    
+
+    private IEnumerator Animate(Vector3 to, bool merging)
     {
         float elapsed = 0f;
         float duration = 0.1f;
@@ -58,6 +75,11 @@ public class GameItem : MonoBehaviour
         }
 
         transform.position = to;
+
+        if (merging)
+        {
+            Destroy(gameObject);
+        }
     }
 
 }

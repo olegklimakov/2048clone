@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -41,25 +42,21 @@ public class Board : MonoBehaviour
         if (SwipeInput.swipedRight)
         {
             MoveItems(Vector2Int.right, _grid.columns - 2, -1, 0, 1);
-            // AddNewElement();
         }
 
         if (SwipeInput.swipedLeft)
         {
             MoveItems(Vector2Int.left, 1, 1, 0, 1);
-            // AddNewElement();
         }
         
         if (SwipeInput.swipedDown)
         {
             MoveItems(Vector2Int.down, 0, 1, 1, 1);
-            // AddNewElement();
         }
         
         if (SwipeInput.swipedUp)
         {
             MoveItems(Vector2Int.up, 0, 1, _grid.rows - 2, -1);
-            // AddNewElement();
         }
     }
 
@@ -77,6 +74,8 @@ public class Board : MonoBehaviour
                 }
             }
         }
+        
+        AddNewElement();
     }
 
     private void MoveItem(GameItem tile, Vector2Int direction)
@@ -88,6 +87,12 @@ public class Board : MonoBehaviour
         {
             if (neighbor.IsOccupied())
             {
+                if (CanMerge(neighbor.item, tile))
+                {
+                    Merge(tile, neighbor.item);
+                    return;
+                }
+
                 // merge
                 break;
             }
@@ -101,6 +106,27 @@ public class Board : MonoBehaviour
             tile.cell.item = null;
             tile.MoveTo(newCell);
         }
+    }
+
+    private bool CanMerge(GameItem a, GameItem b)
+    {
+        return a.number == b.number;
+    }
+
+    private void Merge(GameItem a, GameItem b)
+    {
+        _items.Remove(a);
+        a.Merge(b.cell);
+
+        int index = Math.Clamp(IndexOf(b.state) + 1, 0, tileStates.Length - 1);
+        int number = b.number * 2;
+        
+        b.SetState(tileStates[index], number);
+    }
+
+    private int IndexOf(TileState state)
+    {
+        return tileStates.ToList().FindIndex(x => x == state);
     }
 
     private void AddNewElement()
@@ -119,5 +145,15 @@ public class Board : MonoBehaviour
         item.cell = cell;
         
         item.SetState(tileStates[0], 2);
+    }
+
+    private IEnumerator WaitForChanges()
+    {
+        
+        
+        
+        yield return new WaitForSeconds(0.1f);
+        
+        
     }
 }
